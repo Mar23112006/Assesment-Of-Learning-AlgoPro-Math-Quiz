@@ -28,17 +28,22 @@ typedef struct {
 } Player;
 
 void saveScore(char name[], int score) {
+    for (int i = 0; name[i] != '\0'; i++) {
+        if (name[i] == ' ') {
+            name[i] = '_';
+        }
+    }
+
     FILE *fp = fopen(FILE_NAME, "a");
     
     if (fp == NULL) {
         printf("[ERROR] Failed to open the file database!\n");
         return;
     }
-    
+
     fprintf(fp, "%s %d\n", name, score);
-    
     fclose(fp);
-    printf(">> Scores saved successfully!\n");
+    printf(">> Scores saved successfully! (Player: %s)\n", name);
 }
 
 void readScores(Player players[], int *count) {
@@ -58,15 +63,31 @@ void swap(Player *a, Player *b) {
     *b = temp;
 }
 
-void sortScores(Player players[], int count) {
-    int i, j;
-    Player temp;
-    for (i = 0; i < count - 1; i++) {
-        for (j = 0; j < count - i - 1; j++) {
-            if (players[j].score < players[j+1].score) {
-                swap(&players[j], &players[j+1]);
-            }
+int partition(Player arr[], int low, int high) {
+    int pivot = arr[high].score;
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        if (arr[j].score > pivot) { 
+            i++;
+            swap(&arr[i], &arr[j]);
         }
+    }
+    swap(&arr[i + 1], &arr[high]);
+    return (i + 1);
+}
+
+void quickSort(Player arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+void sortScores(Player players[], int count) {
+    if (count > 1) {
+        quickSort(players, 0, count - 1);
     }
 }
 
@@ -141,7 +162,7 @@ void mathGame() {
 	    score = 0;
 	
 	    printf("\nEnter name for Player %d: ", p + 1);
-    	scanf("%49s", name);
+    	scanf("%[^\n]49s", name);
     	flushExtra();
 	
 	    for (int i = 1; i <= Questions; i++) {
@@ -187,7 +208,7 @@ void mathGame() {
 	        } else {   /* HARD ONLY */
 	            a = rand() % 9 + 1;        /* 1 digit */
 	            b = rand() % 90 + 10;      /* 2 digit */
-	            c = rand() % 8 + 2;        /* 2–9 */
+	            c = rand() % 8 + 2;        /* 2â€“9 */
 	            type = rand() % 4;
 	            point = 30;
 	
@@ -278,4 +299,3 @@ int main() {
 
     return 0;
 }
-
