@@ -1,19 +1,4 @@
 #include "game.h"
-// Nambahin nama & skor baru ke baris plg bwh file
-void saveScore(char name[], int score) {
-    FILE *fp = fopen(FILE_NAME, "a");
-    
-    if (fp == NULL) {
-        printf("[ERROR] Gagal membuka file database!\n");
-        return;
-    }
-    
-    fprintf(fp, "%s %d\n", name, score);
-    
-    fclose(fp);
-    printf(">> Skor berhasil disimpan ke database!\n");
-}
-
 // Mindahin data dari txt ke array of Struct
 void readScores(Player players[], int *count) {
     FILE *fp = fopen(FILE_NAME, "r");
@@ -21,9 +6,29 @@ void readScores(Player players[], int *count) {
     if (fp == NULL) return; 
     while (fscanf(fp, "%s %d", players[*count].name, &players[*count].score) != EOF) {
         (*count)++;
-        if (*count >= MAX_PLAYERS) break;
+        if (*count >= MAX_PLAYER) break;
     }
     fclose(fp);
+}
+
+// Revisi biar input bisa lebih dari 1 kata (string)
+void saveScore(char name[], int score) {
+    for (int i = 0; name[i] != '\0'; i++) {
+        if (name[i] == ' ') {
+            name[i] = '_';
+        }
+    }
+
+    FILE *fp = fopen(FILE_NAME, "a");
+    
+    if (fp == NULL) {
+        printf("[ERROR] Gagal menyimpan data ke file!\n");
+        return;
+    }
+
+    fprintf(fp, "%s %d\n", name, score);
+    fclose(fp);
+    printf(">> Data berhasil disimpan! (Player: %s)\n", name);
 }
 
 void swap(Player *a, Player *b) {
@@ -31,16 +36,32 @@ void swap(Player *a, Player *b) {
     *a = *b;
     *b = temp;
 }
-// sorting score secara descending
-void sortScores(Player players[], int count) {
-    int i, j;
-    Player temp;
-    for (i = 0; i < count - 1; i++) {
-        for (j = 0; j < count - i - 1; j++) {
-            if (players[j].score < players[j+1].score) {
-                swap(&players[j], &players[j+1]);
-            }
+// Quick Sort untuk leaderboard
+int partition(Player arr[], int low, int high) {
+    int pivot = arr[high].score;
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        if (arr[j].score > pivot) { //descending
+            i++;
+            swap(&arr[i], &arr[j]);
         }
+    }
+    swap(&arr[i + 1], &arr[high]);
+    return (i + 1);
+}
+
+void quickSort(Player arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+//udah di sorting
+void sortScores(Player players[], int count) {
+    if (count > 1) {
+        quickSort(players, 0, count - 1);
     }
 }
 
